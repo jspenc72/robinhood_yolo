@@ -523,6 +523,7 @@ stopLossWatch = (com, placeOrder=false) ->
 
 	if market_time < 93000 || market_time > 160000
 		p.error('Exiting stop-loss watch, market is not currently open.')
+		return false
 	else if market_time >= 93000 && market_time < defaults.poorFillTime
 		answer = await inquirer.prompt([
 				type: 'rawlist'
@@ -592,23 +593,10 @@ stopLossWatch = (com, placeOrder=false) ->
 						if TRADE_COUNT < 3 && placeOrder
 							terminatePosition(cur_pos, sell_args)
 
-				# High >= Price * 1.1 && High < Price * 1.2
-
-				else if cur_pos.high >= (cur_pos.price * (1 + MAX_LOSS / 2)) && cur_pos.high < (cur_pos.price * (1 + MAX_LOSS))
-					stop_loss = roundNum(cur_pos.price + 0.01)
-					if bid_price <= stop_loss
-						posText += p.error(
-							"Stop-Loss (Prevent Defeat) triggered: Symbol: #{symbol} | Current Price: #{current_price} | Bid Price: #{bid_price} | Stop Loss: #{stop_loss}"
-							ret: true
-							log: true
-						) + '\n'
-						if TRADE_COUNT < 3 && placeOrder
-							terminatePosition(cur_pos, sell_args)
-
 				# High >= Price * 1.2
 
 				else if cur_pos.high >= (cur_pos.price * (1 + MAX_LOSS))
-					stop_loss = if (cur_pos.high - (cur_pos.price * MAX_LOSS)) >= (current_price + 0.01) then roundNum(cur_pos.high - (cur_pos.price * MAX_LOSS)) else roundNum(curpos.price + 0.01)
+					stop_loss = if (cur_pos.high - (cur_pos.price * MAX_LOSS)) >= (cur_pos.price + 0.01) then roundNum(cur_pos.high - (cur_pos.price * MAX_LOSS)) else roundNum(cur_pos.price + 0.01)
 					if bid_price <= stop_loss
 						posText += p.error(
 							"Stop-Loss (Preserve Gains) triggered: Symbol: #{symbol} | Current Price: #{current_price} | Bid Price: #{bid_price} | Stop Loss: #{stop_loss}"
